@@ -75,17 +75,11 @@ function createSidebar() {
     document.body.append(sidebar);
 }
 
-// content.js
-
 async function fetchDefinition(word) {
     const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
     if (response.ok) {
         const data = await response.json();
-        const definition = data[0].meanings[0].definitions[0].definition;
-        const audio = data[0].phonetics.find(p => p.audio)?.audio;
-        const examples = data[0].meanings[0].definitions[0].example ? [data[0].meanings[0].definitions[0].example] : [];
-
-        return { definition, audio, examples };
+        return data;
     } else {
         console.error(`Error fetching definition for ${word}: ${response.statusText}`);
         return null;
@@ -97,21 +91,83 @@ async function showVocabularyDetails(word) {
     const result = await fetchDefinition(word);
 
     if (result) {
-        sidebar.innerHTML = `
-          <h2>${word}</h2>
-          <p><strong>Definition:</strong> ${result.definition}</p>
-          ${result.examples.length > 0 ? `<p><strong>Examples:</strong> <ul>${result.examples.map(example => `<li>${example}</li>`).join('')}</ul></p>` : ''}
-          ${result.audio ? `<audio controls><source src="${result.audio}" type="audio/mpeg">Your browser does not support the audio element.</audio>` : '<p><strong>Audio:</strong> Not available</p>'}
-        `;
+        sidebar.innerHTML = getVocabularyDetailsTemplate(word, result[0]);
+
+        // Add event listeners to the speech buttons
+        document.querySelectorAll('.example-speech-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const exampleText = button.nextSibling.textContent.trim();
+                speakText(exampleText);
+            });
+        });
     } else {
         sidebar.innerHTML = `
-          <h2>${word}</h2>
-          <p><strong>Definition:</strong> Not found</p>
-          <p><strong>Examples:</strong> Not available</p>
-          <p><strong>Audio:</strong> Not available</p>
-        `;
+        <h2>${word}</h2>
+        <p><strong>Definition:</strong> Not found</p>
+        <p><strong>Examples:</strong> Not available</p>
+        <p><strong>Audio:</strong> Not available</p>
+      `;
     }
 }
+
+function getVocabularyDetailsTemplate(word, result) {
+    return `
+    <style>ol {
+        counter-reset: item; /* Reset the counter at the start of the list */
+      }
+      
+      ol li {
+        list-style: none; /* Remove the default list styling */
+      }
+      
+      ol li::before {
+        counter-increment: item; /* Increment the counter */
+        content: counter(item) ". "; /* Display the counter with a dot and space */
+        font-weight: bold; /* Optional: make the index number bold */
+      }
+      .partOfSpeech{    color: lightseagreen;
+        font-size: 2em;
+        font-weight: bold;
+      }
+      .example{color: cadetblue;font-weight: bold;}
+      </style>
+      <h2>${word}</h2>
+      ${result.phonetics && result.phonetics.length > 0 ? result.phonetics.map(phonetic => `
+        <p><strong>Phonetic:</strong> ${phonetic.text ? phonetic.text : ''}</p>
+        ${phonetic.audio ? `<audio controls><source src="${phonetic.audio}" type="audio/mpeg">Your browser does not support the audio element.</audio>` : ''}
+      `).join('') : ''}
+      ${result.meanings && result.meanings.length > 0 ? `
+        <div>
+          ${result.meanings.map(meaning => `
+            <p class='partOfSpeech'>${meaning.partOfSpeech}</p>
+            <ol>
+            ${meaning.definitions.map((definition, definitionIndex) => `
+              <li>
+                ${definition.definition}
+                ${definition.synonyms && definition.synonyms.length > 0 ? `
+                <p><strong>synonyms:</strong> </p>
+                    ${definition.synonyms.map(synonym => `
+                    <p>${synonym}</p>   
+                    `)}
+                ` : ''} 
+                ${definition.example ? `
+                  <p class='example'>&nbsp;&nbsp;&nbsp;&nbsp;<button class="example-speech-button" data-example-index="${definitionIndex}">🔊</button> ${definition.example}</p>
+                ` : ''}
+              </li>
+            `).join('')}
+            </ol>
+          `).join('<hr/>')}
+        </div>
+      ` : '<p><strong>Definitions:</strong> Not available</p>'}
+      ${result.sourceUrls && result.sourceUrls.length > 0 ? `
+        <p><strong>Source:</strong></p>
+        <ul>
+          ${result.sourceUrls.map(url => `<li><a href="${url}" target="_blank">${url}</a></li>`).join('')}
+        </ul>
+      ` : ''}
+    `;
+}
+
 
 
 
@@ -240,6 +296,5 @@ document.addEventListener('click', (event) => {
 // loadSpeechSDK(() => {
 initializeSpeechSDK();
 addSpeechButtons();
-console.log("hello: ", hello)
 // });
 //   });
