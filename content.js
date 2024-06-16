@@ -1,17 +1,29 @@
 // content.js
 
 function toggleReaderMode() {
-    const mainContent = document.querySelector('article') || document.querySelector('main') || document.body;
-    const elementsToHide = document.querySelectorAll('header, footer, nav, aside, .sidebar, .advertisement, [class*="ad-"], [id*="ad-"]');
-
-    if (document.body.classList.contains('reader-mode')) {
-        document.body.classList.remove('reader-mode');
-        elementsToHide.forEach(el => el.style.display = '');
+    const mainContent = detectMainContent();
+    if (mainContent) {
+        createReaderOverlay(mainContent);
+        addSpeechButtons();
+        document.getElementById('main-article').addEventListener('click', async (event) => {
+            // Check if the click is on a word
+            const selection = window.getSelection();
+            const selectedWord = selection.toString().trim();
+        
+            if (selectedWord) {
+                // Show the vocabulary details for the selected word
+                await showVocabularyDetails(selectedWord.toLowerCase());
+            }
+        });
+        
+        document.body.addEventListener('click', (e) => {
+            if (e.target.classList.contains('highlighted')) {
+                const word = e.target.textContent;
+                showVocabularyDetails(word);
+            }
+        });        
     } else {
-        document.body.classList.add('reader-mode');
-        elementsToHide.forEach(el => el.style.display = 'none');
-        mainContent.style.margin = '0 auto';
-        mainContent.style.width = '60%';
+        console.error('Main content not found');
     }
 }
 
@@ -60,19 +72,90 @@ const vocabularyData = {
     // Add more vocabulary data as needed
 };
 
-function createSidebar() {
+function createReaderOverlay(mainContent) {
+    // Create overlay elements
+    const overlay = document.createElement('div');
+    overlay.id = 'reader-overlay';
+
+    const mainArticle = document.createElement('div');
+    mainArticle.id = 'main-article';
+    mainArticle.innerHTML = mainContent.innerHTML;
+
     const sidebar = document.createElement('div');
     sidebar.id = 'vocab-sidebar';
-    sidebar.style.position = 'fixed';
-    sidebar.style.right = '0';
-    sidebar.style.top = '0';
-    sidebar.style.width = '300px';
-    sidebar.style.height = '100%';
-    sidebar.style.backgroundColor = '#f4f4f4';
-    sidebar.style.borderLeft = '1px solid #ccc';
-    sidebar.style.padding = '10px';
-    sidebar.style.overflowY = 'scroll';
-    document.body.append(sidebar);
+
+    const closeButton = document.createElement('div');
+    closeButton.id = 'reader-overlay-close';
+    closeButton.innerHTML = '&times;';
+    closeButton.addEventListener('click', () => {
+        document.body.removeChild(overlay);
+    });
+
+    // Append elements to the overlay
+    overlay.appendChild(mainArticle);
+    overlay.appendChild(sidebar);
+    overlay.appendChild(closeButton);
+
+    // Append overlay to the body
+    document.body.appendChild(overlay);
+
+    loadCSS('reader.css');
+}
+
+// Function to load an external CSS file
+function loadCSS(url) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = chrome.runtime.getURL(url);
+    document.head.appendChild(link);
+}
+
+
+function detectMainContent() {
+    // Check for common semantic tags
+    const commonTags = ['article', 'main', 'section'];
+    for (const tag of commonTags) {
+        console.log("detech tag ", tag)
+        const elements = document.getElementsByTagName(tag);
+        console.log("length: ", elements.length)
+        if (elements.length > 0) {
+            return elements[0]; // Return the first matching element
+        }
+    }
+
+    // Check for common class names
+    const commonClasses = ['content', 'main', 'article', 'post'];
+    for (const className of commonClasses) {
+        const elements = document.getElementsByClassName(className);
+        if (elements.length > 0) {
+            return elements[0]; // Return the first matching element
+        }
+    }
+
+    // Check for common ID names
+    const commonIDs = ['content', 'main', 'article', 'post'];
+    for (const id of commonIDs) {
+        const element = document.getElementById(id);
+        if (element) {
+            return element; // Return the matching element
+        }
+    }
+
+    // Check for the largest text block
+    const allElements = document.body.getElementsByTagName('*');
+    let largestElement = null;
+    let maxTextLength = 0;
+    for (const element of allElements) {
+        if (element.offsetWidth > 0 && element.offsetHeight > 0) { // Only consider visible elements
+            const textLength = element.textContent.length;
+            if (textLength > maxTextLength) {
+                maxTextLength = textLength;
+                largestElement = element;
+            }
+        }
+    }
+
+    return largestElement; // Return the largest text block element
 }
 
 async function fetchDefinition(word) {
@@ -100,6 +183,14 @@ async function showVocabularyDetails(word) {
                 speakText(exampleText);
             });
         });
+        document.querySelectorAll('.phonetic-speaker-icon').forEach(icon => {
+            icon.addEventListener('click', () => {
+                const audioElement = icon.nextElementSibling;
+                if (audioElement && audioElement.tagName === 'AUDIO') {
+                    audioElement.play();
+                }
+            });
+        });
     } else {
         sidebar.innerHTML = `
         <h2>${word}</h2>
@@ -112,34 +203,22 @@ async function showVocabularyDetails(word) {
 
 function getVocabularyDetailsTemplate(word, result) {
     return `
-    <style>ol {
-        counter-reset: item; /* Reset the counter at the start of the list */
-      }
-      
-      ol li {
-        list-style: none; /* Remove the default list styling */
-      }
-      
-      ol li::before {
-        counter-increment: item; /* Increment the counter */
-        content: counter(item) ". "; /* Display the counter with a dot and space */
-        font-weight: bold; /* Optional: make the index number bold */
-      }
-      .partOfSpeech{    color: lightseagreen;
-        font-size: 2em;
-        font-weight: bold;
-      }
-      .example{color: cadetblue;font-weight: bold;}
-      </style>
       <h2>${word}</h2>
-      ${result.phonetics && result.phonetics.length > 0 ? result.phonetics.map(phonetic => `
-        <p><strong>Phonetic:</strong> ${phonetic.text ? phonetic.text : ''}</p>
-        ${phonetic.audio ? `<audio controls><source src="${phonetic.audio}" type="audio/mpeg">Your browser does not support the audio element.</audio>` : ''}
-      `).join('') : ''}
+      <div class='phonetics'>
+      ${result.phonetics && result.phonetics.length > 0 ? result.phonetics.map(phonetic => {
+        if (phonetic.text && phonetic.audio) {
+            return `
+        <p>${phonetic.text ? phonetic.text : ''}
+        ${phonetic.audio ? `<span class="phonetic-speaker-icon" data-audio-url="${phonetic.audio}">🔊</span>` : ''}
+        <audio class="hidden-audio" src="${phonetic.audio}"/>
+        </p>
+      `}
+    }).join('') : ''}
+      </div>
       ${result.meanings && result.meanings.length > 0 ? `
         <div>
           ${result.meanings.map(meaning => `
-            <p class='partOfSpeech'>${meaning.partOfSpeech}</p>
+            <p class='partOfSpeech'>${meaning.partOfSpeech}: ${word}</p>
             <ol>
             ${meaning.definitions.map((definition, definitionIndex) => `
               <li>
@@ -151,7 +230,7 @@ function getVocabularyDetailsTemplate(word, result) {
                     `)}
                 ` : ''} 
                 ${definition.example ? `
-                  <p class='example'>&nbsp;&nbsp;&nbsp;&nbsp;<button class="example-speech-button" data-example-index="${definitionIndex}">🔊</button> ${definition.example}</p>
+                  <p class='example'><button class="example-speech-button" data-example-index="${definitionIndex}">🔊</button> ${definition.example}</p>
                 ` : ''}
               </li>
             `).join('')}
@@ -160,25 +239,15 @@ function getVocabularyDetailsTemplate(word, result) {
         </div>
       ` : '<p><strong>Definitions:</strong> Not available</p>'}
       ${result.sourceUrls && result.sourceUrls.length > 0 ? `
-        <p><strong>Source:</strong></p>
+        <br/>
+        <hr/>
+        <strong>Source:</strong>
         <ul>
           ${result.sourceUrls.map(url => `<li><a href="${url}" target="_blank">${url}</a></li>`).join('')}
         </ul>
       ` : ''}
     `;
 }
-
-
-
-
-document.body.addEventListener('click', (e) => {
-    if (e.target.classList.contains('highlighted')) {
-        const word = e.target.textContent;
-        showVocabularyDetails(word);
-    }
-});
-
-createSidebar();
 
 function loadVocabulary(callback) {
     fetch(chrome.runtime.getURL('ielts-core.json'))
@@ -248,7 +317,7 @@ function initializeSpeechSDK() {
 console.log("content.js ===")
 // Function to add speech buttons to each paragraph
 function addSpeechButtons() {
-    const paragraphs = document.querySelectorAll('p');
+    const paragraphs = document.getElementById('reader-overlay').querySelectorAll('p');
     paragraphs.forEach((paragraph, index) => {
         const button = document.createElement('button');
         button.innerText = '🔊';
@@ -295,6 +364,6 @@ document.addEventListener('click', (event) => {
 // window.addEventListener('load', () => {
 // loadSpeechSDK(() => {
 initializeSpeechSDK();
-addSpeechButtons();
+// addSpeechButtons();
 // });
 //   });

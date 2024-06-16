@@ -1,0 +1,85 @@
+#reader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    z-index: 9999;
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+  #main-article {
+    width: 70%;
+    overflow-y: auto;
+    padding-right: 20px;
+    box-sizing: border-box;
+  }
+
+  #vocab-sidebar {
+    width: 30%;
+    overflow-y: auto;
+    background: #f9f9f9;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+  #vocab-sidebar h2 {
+    font-size: 2em;
+    font-weight: bold;
+    color: darkcyan;
+ }
+
+ .phonetics{
+    display: flex;
+    margin-top: .5em;
+ }
+
+  #vocab-sidebar .phonetic-speaker-icon {
+    cursor: pointer;
+    display: inline-block;
+    margin-left: 10px;
+    font-size: 18px;
+  }
+
+  #vocab-sidebar .hidden-audio{
+    display: none;
+  }
+
+  #reader-overlay-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    cursor: pointer;
+  }
+
+  #vocab-sidebar ol {
+    counter-reset: item; /* Reset the counter at the start of the list */
+  }
+  
+  #vocab-sidebar ol li {
+    list-style: none; /* Remove the default list styling */
+    line-height: 1.5em;
+    margin-left: 1em;
+  }
+  
+  #vocab-sidebar ol li::before {
+    counter-increment: item; /* Increment the counter */
+    content: counter(item) ". "; /* Display the counter with a dot and space */
+    font-weight: bold; /* Optional: make the index number bold */
+  }
+  #vocab-sidebar .partOfSpeech{    
+    color: darkcyan;
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 10px 0;
+  }
+  #vocab-sidebar .example{
+    color: cadetblue;
+    font-weight: bold;
+    margin-left: 1em;
+}

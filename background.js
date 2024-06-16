@@ -4,7 +4,7 @@ chrome.action.onClicked.addListener((tab) => {
     console.log("tab: " + tab.id)
     chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        files: ['jsbrowserpackageraw.js', 'hello.js', 'content.js']
+        files: ['jsbrowserpackageraw.js', 'content.js']
     });
 });
 

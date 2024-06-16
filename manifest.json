@@ -35,7 +35,7 @@
     },
     "web_accessible_resources": [
       {
-        "resources": ["ielts-core.json"],
+        "resources": ["ielts-core.json", "reader.css"],
         "matches": ["<all_urls>"]
       }
     ],
