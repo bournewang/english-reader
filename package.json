@@ -1,9 +1,0 @@
-{
-  "devDependencies": {
-    "chokidar": "^3.6.0",
-    "chrome-remote-interface": "^0.33.0"
-  },
-  "scripts": {
-    "watch": "node watcher.js"
-  }  
-}
