@@ -4,24 +4,24 @@ function toggleReaderMode() {
     const mainContent = detectMainContent();
     if (mainContent) {
         createReaderOverlay(mainContent);
-        addSpeechButtons();
+        // addSpeechButtons();
         document.getElementById('main-article').addEventListener('click', async (event) => {
             // Check if the click is on a word
             const selection = window.getSelection();
             const selectedWord = selection.toString().trim();
-        
+
             if (selectedWord) {
                 // Show the vocabulary details for the selected word
                 await showVocabularyDetails(selectedWord.toLowerCase());
             }
         });
-        
+
         document.body.addEventListener('click', (e) => {
             if (e.target.classList.contains('highlighted')) {
                 const word = e.target.textContent;
                 showVocabularyDetails(word);
             }
-        });        
+        });
     } else {
         console.error('Main content not found');
     }
@@ -71,7 +71,6 @@ const vocabularyData = {
     }
     // Add more vocabulary data as needed
 };
-
 function createReaderOverlay(mainContent) {
     // Create overlay elements
     const overlay = document.createElement('div');
@@ -79,10 +78,32 @@ function createReaderOverlay(mainContent) {
 
     const mainArticle = document.createElement('div');
     mainArticle.id = 'main-article';
-    mainArticle.innerHTML = mainContent.innerHTML;
+
+    // Add class to original paragraphs and add speaker icons
+    mainContent.querySelectorAll('p').forEach(paragraph => {
+        paragraph.classList.add('original-paragraph');
+        const clonedParagraph = paragraph.cloneNode(true);
+
+        // Add speaker icon to each original paragraph
+        const speakerIcon = document.createElement('span');
+        speakerIcon.className = 'speaker-icon';
+        speakerIcon.textContent = '🔊';
+        speakerIcon.addEventListener('click', () => {
+            speakText(clonedParagraph.textContent);
+        });
+
+        clonedParagraph.appendChild(speakerIcon);
+        mainArticle.appendChild(clonedParagraph);
+    });
 
     const sidebar = document.createElement('div');
     sidebar.id = 'vocab-sidebar';
+
+    const controlsSection = document.createElement('div');
+    controlsSection.id = 'controls-section';
+
+    const detailsSection = document.createElement('div');
+    detailsSection.id = 'details-section';
 
     const closeButton = document.createElement('div');
     closeButton.id = 'reader-overlay-close';
@@ -90,6 +111,37 @@ function createReaderOverlay(mainContent) {
     closeButton.addEventListener('click', () => {
         document.body.removeChild(overlay);
     });
+
+    // Create switch for bilingual mode
+    const switchLabel = document.createElement('label');
+    switchLabel.className = 'switch';
+
+    const bilingualSwitch = document.createElement('input');
+    bilingualSwitch.type = 'checkbox';
+    bilingualSwitch.id = 'bilingual-switch';
+    bilingualSwitch.addEventListener('change', () => {
+        toggleBilingualMode(mainArticle);
+    });
+
+    const slider = document.createElement('span');
+    slider.className = 'slider round';
+
+    switchLabel.appendChild(bilingualSwitch);
+    switchLabel.appendChild(slider);
+
+    // Create loading status element
+    const loadingStatus = document.createElement('div');
+    loadingStatus.id = 'loading-status';
+    loadingStatus.textContent = 'Loading translations...';
+
+    // Append elements to the controls section
+    controlsSection.appendChild(switchLabel);
+    controlsSection.appendChild(document.createTextNode('Bilingual Mode'));
+    controlsSection.appendChild(loadingStatus);
+
+    // Append sections to the sidebar
+    sidebar.appendChild(controlsSection);
+    sidebar.appendChild(detailsSection);
 
     // Append elements to the overlay
     overlay.appendChild(mainArticle);
@@ -170,11 +222,11 @@ async function fetchDefinition(word) {
 }
 
 async function showVocabularyDetails(word) {
-    const sidebar = document.getElementById('vocab-sidebar');
+    const detail = document.getElementById('details-section');
     const result = await fetchDefinition(word);
 
     if (result) {
-        sidebar.innerHTML = getVocabularyDetailsTemplate(word, result[0]);
+        detail.innerHTML = getVocabularyDetailsTemplate(word, result[0]);
 
         // Add event listeners to the speech buttons
         document.querySelectorAll('.example-speech-button').forEach(button => {
@@ -192,7 +244,7 @@ async function showVocabularyDetails(word) {
             });
         });
     } else {
-        sidebar.innerHTML = `
+        detail.innerHTML = `
         <h2>${word}</h2>
         <p><strong>Definition:</strong> Not found</p>
         <p><strong>Examples:</strong> Not available</p>
@@ -314,20 +366,6 @@ function initializeSpeechSDK() {
     console.log("Speech SDK Initialized");
 }
 
-console.log("content.js ===")
-// Function to add speech buttons to each paragraph
-function addSpeechButtons() {
-    const paragraphs = document.getElementById('reader-overlay').querySelectorAll('p');
-    paragraphs.forEach((paragraph, index) => {
-        const button = document.createElement('button');
-        button.innerText = '🔊';
-        button.className = 'speech-button';
-        button.dataset.paragraphIndex = index;
-        paragraph.appendChild(button);
-    });
-    console.log("Speech buttons added to paragraphs");
-}
-
 // Function to handle speech synthesis
 function speakText(text) {
     if (!synthesizer) {
@@ -361,9 +399,92 @@ document.addEventListener('click', (event) => {
     }
 });
 
-// window.addEventListener('load', () => {
-// loadSpeechSDK(() => {
+
+// Create a cache object
+const translationCache = {};
+
+async function translateText(text, targetLang = 'zh-CN') {
+    // Check if the translation is already in the cache
+    const cacheKey = `${text}-${targetLang}`;
+    if (translationCache[cacheKey]) {
+        return translationCache[cacheKey];
+    }
+
+    const subscriptionKey = 'a6097f5c947645acbd0544bd9fdbd3e1'; // Replace with your subscription key
+    const endpoint = 'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0';
+    const location = 'eastasia'; // Replace with your resource location
+
+    const url = `${endpoint}&to=${targetLang}`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify([{ Text: text }]),
+            headers: {
+                'Ocp-Apim-Subscription-Key': subscriptionKey,
+                'Ocp-Apim-Subscription-Region': location,
+                'Content-type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const translatedText = data[0].translations[0].text;
+
+        // Store the translation in the cache
+        translationCache[cacheKey] = translatedText;
+
+        return translatedText;
+    } catch (error) {
+        console.error('Translation error:', error);
+        return null;
+    }
+}
+
+
 initializeSpeechSDK();
-// addSpeechButtons();
-// });
-//   });
+
+
+async function toggleBilingualMode(mainArticle) {
+    const bilingualSwitch = document.getElementById('bilingual-switch');
+    const loadingStatus = document.getElementById('loading-status');
+
+    if (bilingualSwitch.checked) {
+        // Show loading status
+        loadingStatus.style.display = 'block';
+
+        const paragraphs = mainArticle.querySelectorAll('p.original-paragraph');
+        for (const paragraph of paragraphs) {
+            if (!paragraph.classList.contains('translated')) {
+                const translation = await translateText(paragraph.textContent);
+                if (translation) {
+                    const translationElement = document.createElement('p');
+                    translationElement.className = 'translation';
+                    translationElement.textContent = translation;
+                    translationElement.style.display = 'none'; // Initially hide the translation
+
+                    paragraph.insertAdjacentElement('afterend', translationElement);
+                    paragraph.classList.add('translated');
+                }
+            }
+        }
+
+        // Show all translations
+        const translations = mainArticle.querySelectorAll('.translation');
+        translations.forEach(translation => {
+            translation.style.display = 'block';
+        });
+
+        // Hide loading status
+        loadingStatus.style.display = 'none';
+    } else {
+        // Hide all translations
+        const translations = mainArticle.querySelectorAll('.translation');
+        translations.forEach(translation => {
+            translation.style.display = 'none';
+        });
+    }
+}

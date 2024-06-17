@@ -15,7 +15,7 @@
   cacheDir: '/Users/wangxiaopei/.npminstall_tarball',
   env: {
     npm_config_registry: 'https://registry.npmmirror.com',
-    npm_config_argv: '{"remain":[],"cooked":["--fix-bug-versions","--china","--userconfig=/Users/wangxiaopei/.cnpmrc","--disturl=https://cdn.npmmirror.com/binaries/node","--registry=https://registry.npmmirror.com","chrome-extension-reloader","--save-dev"],"original":["--fix-bug-versions","--china","--userconfig=/Users/wangxiaopei/.cnpmrc","--disturl=https://cdn.npmmirror.com/binaries/node","--registry=https://registry.npmmirror.com","chrome-extension-reloader","--save-dev"]}',
+    npm_config_argv: '{"remain":[],"cooked":["--fix-bug-versions","--china","--userconfig=/Users/wangxiaopei/.cnpmrc","--disturl=https://cdn.npmmirror.com/binaries/node","--registry=https://registry.npmmirror.com","chrome-extension-reloader"],"original":["--fix-bug-versions","--china","--userconfig=/Users/wangxiaopei/.cnpmrc","--disturl=https://cdn.npmmirror.com/binaries/node","--registry=https://registry.npmmirror.com","chrome-extension-reloader"]}',
     npm_config_user_agent: 'npminstall/7.11.1 npm/? node/v20.12.0 darwin arm64',
     npm_config_cache: '/Users/wangxiaopei/.npminstall_tarball',
     NODE: '/Users/wangxiaopei/.nvm/versions/node/v20.12.0/bin/node',

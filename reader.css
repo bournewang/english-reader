@@ -10,76 +10,153 @@
     justify-content: space-between;
     padding: 20px;
     box-sizing: border-box;
-  }
+}
 
-  #main-article {
+#main-article {
     width: 70%;
     overflow-y: auto;
     padding-right: 20px;
     box-sizing: border-box;
-  }
+}
 
-  #vocab-sidebar {
+#main-article .translation {
+    color: darkcyan;
+    font-style: italic;
+    margin-top: 10px;
+}
+
+#vocab-sidebar {
     width: 30%;
     overflow-y: auto;
     background: #f9f9f9;
     padding: 20px;
     box-sizing: border-box;
-  }
+}
 
-  #vocab-sidebar h2 {
+#controls-section {
+    border-bottom: 1px solid black;
+    padding-bottom: .5em;
+}
+
+#vocab-sidebar h2 {
     font-size: 2em;
     font-weight: bold;
     color: darkcyan;
- }
+}
 
- .phonetics{
+.phonetics {
     display: flex;
     margin-top: .5em;
- }
+}
 
-  #vocab-sidebar .phonetic-speaker-icon {
+#vocab-sidebar .phonetic-speaker-icon {
     cursor: pointer;
     display: inline-block;
     margin-left: 10px;
     font-size: 18px;
-  }
+}
 
-  #vocab-sidebar .hidden-audio{
+#vocab-sidebar .hidden-audio {
     display: none;
-  }
+}
 
-  #reader-overlay-close {
+#reader-overlay-close {
     position: absolute;
     top: 10px;
     right: 10px;
     font-size: 24px;
     cursor: pointer;
-  }
+}
 
-  #vocab-sidebar ol {
-    counter-reset: item; /* Reset the counter at the start of the list */
-  }
-  
-  #vocab-sidebar ol li {
-    list-style: none; /* Remove the default list styling */
+#vocab-sidebar ol {
+    counter-reset: item;
+    /* Reset the counter at the start of the list */
+}
+
+#vocab-sidebar ol li {
+    list-style: none;
+    /* Remove the default list styling */
     line-height: 1.5em;
     margin-left: 1em;
-  }
-  
-  #vocab-sidebar ol li::before {
-    counter-increment: item; /* Increment the counter */
-    content: counter(item) ". "; /* Display the counter with a dot and space */
-    font-weight: bold; /* Optional: make the index number bold */
-  }
-  #vocab-sidebar .partOfSpeech{    
+}
+
+#vocab-sidebar ol li::before {
+    counter-increment: item;
+    /* Increment the counter */
+    content: counter(item) ". ";
+    /* Display the counter with a dot and space */
+    font-weight: bold;
+    /* Optional: make the index number bold */
+}
+
+#vocab-sidebar .partOfSpeech {
     color: darkcyan;
     font-size: 1.5em;
     font-weight: bold;
     margin: 10px 0;
-  }
-  #vocab-sidebar .example{
+}
+
+#vocab-sidebar .example {
     color: cadetblue;
     font-weight: bold;
     margin-left: 1em;
+}
+
+
+/* Styles for the switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 34px;
+    height: 20px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+}
+
+input:checked+.slider {
+    background-color: #2196F3;
+}
+
+input:checked+.slider:before {
+    transform: translateX(14px);
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+#loading-status {
+    display: none;
+    margin-top: 10px;
+    color: #666;
 }

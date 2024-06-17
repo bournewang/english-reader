@@ -1,27 +1,22 @@
-// watcher.js
 const chokidar = require('chokidar');
-const CDP = require('chrome-remote-interface');
+const chromeExtensionReloader = require('chrome-extension-reloader');
 
-// Path to your extension directory
-const EXTENSION_PATH = '/path/to/your/extension';
+// Replace 'your-extension-id' with your actual extension ID from Chrome
+const EXTENSION_ID = 'mphjbhnoibkagbncmoiibjbakfdcmgdj';
 
-// Watch for changes in the extension directory
-chokidar.watch(EXTENSION_PATH, { ignored: /(^|[\/\\])\../ }).on('all', (event, path) => {
-  console.log(event, path);
-  reloadExtension();
+chromeExtensionReloader({
+  extensionId: EXTENSION_ID,
+  // Optionally specify a port if you're running a custom local server
+  port: 3000
 });
 
-async function reloadExtension() {
-  let client;
-  try {
-    client = await CDP();
-    const { Runtime } = client;
-    await Runtime.evaluate({ expression: 'chrome.runtime.reload()' });
-  } catch (err) {
-    console.error(err);
-  } finally {
-    if (client) {
-      await client.close();
-    }
-  }
-}
+// Initialize the watcher
+const watcher = chokidar.watch('./', {
+  ignored: /node_modules|\.git/,
+  persistent: true
+});
+
+watcher.on('change', (path) => {
+  console.log(`File ${path} has been changed. Reloading extension...`);
+  chromeExtensionReloader.reload();
+});
