@@ -10,7 +10,7 @@ function toggleReaderMode() {
             const selection = window.getSelection();
             const selectedWord = selection.toString().trim();
 
-            if (selectedWord) {
+            if (!selectedWord.includes(' ')) { // not a sentence
                 // Show the vocabulary details for the selected word
                 await showVocabularyDetails(selectedWord.toLowerCase());
             }
@@ -139,8 +139,14 @@ function createReaderOverlay(mainContent) {
     controlsSection.appendChild(document.createTextNode('Bilingual Mode'));
     controlsSection.appendChild(loadingStatus);
 
+    const dictLoadingStatus = document.createElement('div');
+    dictLoadingStatus.id = 'dict-loading-status';
+    dictLoadingStatus.textContent = 'Loading Dictionary...';
+    dictLoadingStatus.style.display = 'none';
+
     // Append sections to the sidebar
     sidebar.appendChild(controlsSection);
+    sidebar.appendChild(dictLoadingStatus);
     sidebar.appendChild(detailsSection);
 
     // Append elements to the overlay
@@ -223,7 +229,10 @@ async function fetchDefinition(word) {
 
 async function showVocabularyDetails(word) {
     const detail = document.getElementById('details-section');
+    const loadingStatus = document.getElementById('dict-loading-status');
+    loadingStatus.style.display = 'block';
     const result = await fetchDefinition(word);
+    loadingStatus.style.display = 'none';
 
     if (result) {
         detail.innerHTML = getVocabularyDetailsTemplate(word, result[0]);
@@ -278,7 +287,7 @@ function getVocabularyDetailsTemplate(word, result) {
                 ${definition.synonyms && definition.synonyms.length > 0 ? `
                 <p><strong>synonyms:</strong> </p>
                     ${definition.synonyms.map(synonym => `
-                    <p>${synonym}</p>   
+                    <span>${synonym}</span>   
                     `)}
                 ` : ''} 
                 ${definition.example ? `
