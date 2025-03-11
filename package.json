@@ -1,0 +1,31 @@
+{
+  "name": "english-reader",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "author": "Wang Xiaopei <xiaopei0206@icloud.com>",
+  "scripts": {
+    "build": "npm run build:shared && npm run build:extension && npm run build:website",
+    "build:extension": "npm run build -w @english-reader/extension",
+    "build:website": "npm run build -w @english-reader/website",
+    "build:shared": "npm run build -w @english-reader/shared",
+    "dev:extension": "npm run dev -w @english-reader/extension",
+    "dev:website": "npm run dev -w @english-reader/website"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.13.10",
+    "@vitejs/plugin-react": "^4.3.4",
+    "fs-extra": "^11.3.0",
+    "nodemon": "^3.1.9",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "vite": "^6.2.1"
+  },
+  "dependencies": {
+    "@english-reader/shared": "workspace:*",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}

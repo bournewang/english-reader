@@ -1,0 +1,7 @@
+# Build output
+dist
+build
+
+# Chrome extension packaging
+*.crx
+*.pem

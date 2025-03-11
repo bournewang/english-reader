@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Demo Extension</title>
+    <style>
+      body {
+        width: 300px;
+        padding: 16px;
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+      .container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      button {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        background-color: #1a73e8;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+      button:hover {
+        background-color: #1557b0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Demo Extension</h2>
+      <button id="readButton">Read Article</button>
+    </div>
+    <script type="module" src="./index.ts"></script>
+  </body>
+</html>

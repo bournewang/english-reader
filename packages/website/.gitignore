@@ -1,0 +1,12 @@
+# Next.js
+.next
+out
+dist
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Build cache
+.vercel 

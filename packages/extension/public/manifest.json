@@ -1,0 +1,25 @@
+{
+    "manifest_version": 3,
+    "name": "Easy Reading",
+    "version": "0.6",
+    "description": "Transform any webpage into an interactive learning experience.",
+    "permissions": [
+      "activeTab",
+      "scripting"
+    ],
+    "action": {
+      "default_popup": "popup.html"
+    },
+    "content_scripts": [
+      {
+        "matches": ["<all_urls>"],
+        "css": ["assets/reader.css"],
+        "js": [
+          "assets/react.production.min.js",
+          "assets/react-dom.production.min.js",
+          "content.js"
+        ],
+        "run_at": "document_end"
+      }
+    ]
+  }
